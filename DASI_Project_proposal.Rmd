@@ -1,0 +1,78 @@
+---
+title: "DASI_Project_proposal"
+author: "myself_vinsent"
+date: "Saturday, September 20, 2014"
+output: html_document
+---
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+
+### Introduction:
+
+This study on dataset esoph data set to find the relation between age group, type of cancer causing agent(Alcohol and Tobacco). from the R- dataset.
+this dataset contains 88 observation of control and ncases.
+
+### Data:
+```{r}
+summary(esoph)
+```
+
+
+
+### Exploratory data analysis:
+```{r, echo=FALSE}
+plot(esoph)
+
+## effects of alcohol, tobacco and interaction, age-adjusted
+model1 <- glm(cbind(ncases, ncontrols) ~ agegp + tobgp * alcgp,
+              data = esoph, family = binomial())
+
+## Try a linear effect of alcohol and tobacco
+model2 <- glm(cbind(ncases, ncontrols) ~ agegp + unclass(tobgp)
+              + unclass(alcgp),
+              data = esoph, family = binomial())
+
+plot(model1)
+anova(model1,model2)
+```
+
+### Inference:
+#### Calculate the cancer proportion by alcohol and tobacco usage
+
+
+```{r echo = FALSE, ggplot2ex}
+library(plyr)
+library(reshape2)
+df <- esoph 
+
+CancerProportion <- function(df) {  
+     cancer.prop <- sum(df$ncases) / sum(df$ncontrols)  
+     data.frame(cancer.prop=cancer.prop)  
+   }
+##SPLIT by the tobgp column  
+# APPLY this function to each tobacco group  
+
+alc.tob.cancer <- ddply(esoph, .(alcgp, tobgp), CancerProportion)
+
+head(alc.tob.cancer)  
+library(lattice)
+library(ggplot2)
+ g <- qplot(x=alcgp, y=tobgp, fill=log(cancer.prop), geom='tile', data=alc.tob.cancer ,labs(x='Alcohol consumption', y='Tobacco Consumption',  title='Cancer by Alcohol and Tobacco'))
+
+plot(g)
+
+```
+
+#### The cancer caused by both tobaco and Alcohol are plotted in a log ratio,
+####the inverse log , the color are the fill is consider as cancer.prop <- sum(df$ncases) / sum(df$ncontrols)( this states a ratio between affected persons to  healthy living) 
+
+### Conclusion:
+
+####A high number of case in age group 30+ can be seen in log plot. for both Alcohol and Tobaco consumption.
+
+
+###Reference
+#####http://davetsao.com/blog/2013-07-28-useful-r-packages.html
